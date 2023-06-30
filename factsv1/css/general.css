@@ -1,0 +1,194 @@
+/* Estilo general */
+* {
+	font-family: Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+div.tooltip { 
+	background-color:#000; 
+	border:1px solid #fff; 
+	padding:5px 5px; 
+	display:none; 
+	color:#fff; 
+	text-align:left; 
+	font-size:11px; 
+ z-index:5000;
+	/* outline radius for mozilla/firefox only */ 
+	-moz-box-shadow:0 0 5px #000; 
+	-webkit-box-shadow:0 0 5px #000; 
+}
+.error {
+	border: 1px solid red !important;
+}
+
+.ac_results {
+	padding: 0px;
+	border: 1px solid black;
+	background-color: white;
+	overflow: hidden;
+	z-index: 99999;
+}
+
+.ac_results ul {
+	width: 100%;
+	list-style-position: outside;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.ac_results li {
+	margin: 0px;
+	padding: 3px 5px;
+	cursor: default;
+	display: block;
+	font: menu;
+	font-size: 13px;
+	line-height: 18px;
+	overflow: hidden;
+}
+
+.ac_loading {
+	background: white url('../imagenes/indicator.gif') right center no-repeat;
+}
+
+.ac_odd {
+	background-color: #eee;
+}
+
+.ac_over {
+	background-color: #3a7e34;
+	color: white;
+}
+.ui-pg-input {
+	width: 20px;
+	text-align : center;
+}
+.ui-pg-selbox {
+	width: 50px;
+}
+  /* Tooltip */
+.test + .tooltip > .tooltip-inner {
+      background-color: #F7E1B5; 
+      color: black; 
+      border: 1px solid black; 
+      padding: 3px;
+      font-size: 10px;
+      text-align: left;
+}
+  /* Tooltip on top */
+.test + .tooltip.top > .tooltip-arrow {
+      border-top: 5px solid green;
+}
+  /* Tooltip on bottom */
+.test + .tooltip.bottom > .tooltip-arrow {
+      border-bottom: 5px solid blue;
+}
+  /* Tooltip on left */
+.test + .tooltip.left > .tooltip-arrow {
+      border-left: 5px solid red;
+}
+  /* Tooltip on right */
+.test + .tooltip.right > .tooltip-arrow {
+      border-right: 5px solid black;
+}
+/* Animaciones */
+.animated {
+  -webkit-animation-duration: 1s;
+  animation-duration: 1s;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.fast {
+  -webkit-animation-duration: 0.3s;
+  animation-duration: 0.3s;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.fadeIn {
+  animation-name: fadeIn;
+}
+.background-theme {
+	background-color:#222;  
+}
+
+.background-box {
+	background-color:#FFF;
+}
+
+* {
+  font-family: 'Roboto', sans-serif;
+}
+
+body {
+	background-color:white;
+	font-weight: 300;
+	background-size : 100% 100%;
+	background-attachment : fixed;
+}
+
+.login-outer {
+    display: table;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}
+
+.login-middle {
+    display: table-cell;
+	vertical-align: middle;
+}
+
+.form-signin {
+	color: black;
+  padding: 15px;
+	margin: auto;
+	background-color:white;
+	width: 260px;
+	box-shadow: 0 0 12px #000; 
+}
+.btn-left {
+	padding:5px;
+	background-color:#CDD5DA;
+	text-align: left;
+	color:black;
+	cursor:pointer;
+}
+
+.btn-select {
+	background-color:rgb(53, 83, 128);
+	color:white;
+	font-weight: bold;
+}
+
+.btn-left:hover {
+	background-color: rgb(38, 59, 90);
+	color:white;
+}
+.form_section {
+	font-size:18px;
+	font-weight:bold;
+	margin-bottom:5px;
+	margin-top:8px;
+	text-decoration:underline;
+	color:#cc0000;
+}
+
+.noselect {
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none; /* Safari */
+	-khtml-user-select: none; /* Konqueror HTML */
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* Internet Explorer/Edge */
+	user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
+}
