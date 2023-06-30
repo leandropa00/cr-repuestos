@@ -2,6 +2,7 @@
 	define("iC", true);
 	require_once(dirname(__FILE__) . "/../../../conf/config.php");
 	Aplicacion::validarAcceso(5,10);
+	// define('MODO_DEBUG', true);
 	$informe = Informe::getInstance();
 	$informe->clearQuerys();
 	$periodo = new Periodo(Informe::getLimitePeriodo());
@@ -62,9 +63,7 @@
 				<td style='font-weight:bold;'><b>Mostrador</b></td>
 				<td style="text-align:right;font-weight:bold;"><b>$<?php echo Moneda::getMoneda($informe->getTotalMostrador('liviano', false, false), 0) ?></b></td>
 				<td class='coa' style="text-align:right;font-weight:bold;"><b>$<?php echo Moneda::getMoneda($informe->getTotalMostrador('liviano', false, true), 0) ?></b></td>
-				<td class='coa' style="text-align:right;font-weight:bold;"><b>$<?php 
-					echo Moneda::getMoneda($informe->getTotalMostrador('liviano', false, false) + $informe->getTotalMostrador('liviano', false, true), 0); 
-				?></b></td>
+				<td class='coa' style="text-align:right;font-weight:bold;"><b>$<?php echo Moneda::getMoneda($informe->getTotalMostrador('liviano', false, false) + $informe->getTotalMostrador('liviano', false, true), 0); ?></b></td>
 			</tr>
 			<tr>
 				<td style='padding-left:20px;'>Mostrador solo flotas</td>
@@ -431,29 +430,110 @@
 				<td colspan=4 style="background-color:#1f497d;color:white;font-weight:bold;">COSTOS DETAL LIVIANOS</td>
 			</tr>
 			<tr>
-				<td style='font-weight:bold;'>Costo de ventas</td>
-				<td style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalCostosVenta('liviano', false, false), 0) ?></td>
-				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalCostosVenta('liviano', false, true), 0) ?></td>
-				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalCostosVenta('liviano', false, false) + $informe->getTotalCostosVenta('liviano', false, true), 0) ?></td>
+				<td style='font-weight:bold;'><b>Mostrador</b></td>
+				<td style="text-align:right;font-weight:bold;"><b>$<?php echo Moneda::getMoneda($informe->getVentasMostrador('liviano', false, false), 0) ?></b></td>
+				<td class='coa' style="text-align:right;font-weight:bold;"><b>$<?php echo Moneda::getMoneda($informe->getVentasMostrador('liviano', false, true), 0) ?></b></td>
+				<td class='coa' style="text-align:right;font-weight:bold;"><b>$<?php 
+					echo Moneda::getMoneda($informe->getVentasMostrador('liviano', false, false) + $informe->getVentasMostrador('liviano', false, true), 0); 
+				?></b></td>
 			</tr>
 			<tr>
-				<td style='padding-left:20px;'>Costo de venta Mostrador</td>
-				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasMostrador.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasMostrador('liviano'), false, false) ?></a></td>
-				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasMostrador.php?tipo=liviano&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasMostrador('liviano', false, true), 0) ?></a></td>
-				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getVentasMostrador('liviano', false, false) + $informe->getVentasMostrador('liviano', false, true), 0); ?></td>
+				<td style='padding-left:20px;'>Mostrador solo flotas</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MostradorCostosSoloFlotas.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostoVentasSoloFlotas(['FA', 'FRD'], 'liviano'), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$0</td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getCostoVentasSoloFlotas(['FA', 'FRD'], 'liviano', false), 0); ?></td>
 			</tr>
 			<tr>
-				<td style='padding-left:20px;'>Costo de venta Taller</td>
-				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasTaller.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasTaller('liviano', false, false), 0) ?></a></td>
-				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasTaller.php?tipo=liviano&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasTaller('liviano', false, true), 0) ?></a></td>
-				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getVentasTaller('liviano', false, false) + $informe->getVentasTaller('liviano', false, true), 0); ?></td>
+				<td style='padding-left:20px;'>Mostrador Colisión / Aseguradoras</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MostradorCostosColision.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostoVentasColision(['FA', 'FRD'],'liviano'), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$0</td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getCostoVentasColision(['FA', 'FRD'], 'liviano', false), 0); ?></td>
 			</tr>
 			<tr>
+				<td style='padding-left:20px;'>Mostrador Mantenimiento / Desgaste</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MostadorMantenimientoDesgaste.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostosMostadorMantenimientoDesgaste([['FA', 'FRD']], 'liviano'), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$0</td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getCostosMostadorMantenimientoDesgaste(['FA', 'FRD'], 'liviano'), false) ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:20px;'>Mostrador (Otros) / Ventas Externas</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MostadorCostosOtrosVentasExternas.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostoVentasExternas(['FA', 'FRD'], 'liviano'), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$0</td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getCostoVentasExternas(['FA', 'FRD'], 'liviano', false). 0); ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:20px;'>Mostrador Solochevrolet</td>
+				<td style="text-align:right;">$0</td>
+				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MostradorCostosSolochevrolet.php?tipo=liviano&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostoVentasSoloChevrolet('liviano', false), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getCostoVentasSoloChevrolet('liviano'), false) ?></td>
+			</tr>
+			<tr>
+				<td style='font-weight:bold;'>Taller Mecánica y Mantenimiento</td>
+				<td style="text-align:right;font-weight:bold;"><b>$<?php echo Moneda::getMoneda($informe->getVentasTaller('liviano', false, false), 0); ?></b></td>
+				<td class='coa' style="text-align:right;font-weight:bold;"><b>$<?php echo Moneda::getMoneda($informe->getVentasTaller('liviano', false, true), 0); ?></b></td>
+				<td class='coa' style="text-align:right;font-weight:bold;"><b>$<?php echo Moneda::getMoneda($informe->getVentasTaller('liviano', false, false) + $informe->getVentasTaller('liviano', false, true), 0); ?></b></td>
+			</tr>
+			<tr>
+				<td style='padding-left:20px;font-weight:bold;'><b>Mecánica Rápida</b></td>
+				<td style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalMecanicaRapidaCostos('liviano', false, false), 0); ?></td>
+				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalMecanicaRapidaCostos('liviano', false, true), 0) ?></td>
+				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalMecanicaRapidaCostos('liviano', false, false) + $informe->getTotalMecanicaRapidaCostos('liviano', false, true), 0); ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:40px;'>Taller solo flotas</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MecanicaRapidaFlotasCostos.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getMecanicaRapidaFlotasCostos('liviano', false, false), 0) ?></a></td>
+				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MecanicaRapidaFlotasCostos.php?tipo=liviano&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getMecanicaRapidaFlotasCostos('liviano', false, true), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getMecanicaRapidaFlotasCostos('liviano', false, false) + $informe->getMecanicaRapidaFlotasCostos('liviano', false, true), 0) ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:40px;'>Taller Uno a Uno</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MecanicaRapidaUnoCostos.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getMecanicaRapidaUnoCostos('liviano', false, false), 0) ?></a></td>
+				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MecanicaRapidaUnoCostos.php?tipo=liviano&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getMecanicaRapidaUnoCostos('liviano', false, true), 0); ?></a></td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getMecanicaRapidaUnoCostos('liviano', false, false) + $informe->getMecanicaRapidaUnoCostos('liviano', false, true), 0) ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:20px;font-weight:bold;'><b>Mecánica Especializada</b></td>
+				<td style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalMecanicaEspecializadaCostos('liviano', false, false), 0) ?></td>
+				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalMecanicaEspecializadaCostos('liviano', false, true), 0) ?></td>
+				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalMecanicaEspecializadaCostos('liviano', false, false) + $informe->getTotalMecanicaEspecializadaCostos('liviano', false, true), 0); ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:40px;'>Taller solo flotas</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MecanicaEspecializadaFlotasCostos.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getMecanicaEspecializadaFlotasCostos('liviano', false, false), 0) ?></a></td>
+				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MecanicaEspecializadaFlotasCostos.php?tipo=liviano&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getMecanicaEspecializadaFlotasCostos('liviano', false, true), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getMecanicaEspecializadaFlotasCostos('liviano', false, false) + $informe->getMecanicaEspecializadaFlotasCostos('liviano', false, true), 0) ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:40px;'>Taller Uno a Uno</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MecanicaEspecializadaUnoCostos.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getMecanicaEspecializadaUnoCostos('liviano', false, false), 0) ?></a></td>
+				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MecanicaEspecializadaUnoCostos.php?tipo=liviano&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getMecanicaEspecializadaUnoCostos('liviano', false, true), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getMecanicaEspecializadaUnoCostos('liviano', false, false) + $informe->getMecanicaEspecializadaUnoCostos('liviano', false, true), 0) ?></td>
+			</tr>
+
+			<tr>
+				<td style='font-weight:bold;'>Colisión</td>
+				<td style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalColisionCosto('liviano'), 0); ?></td>
+				<td class='coa' style="text-align:right;font-weight:bold;">$0</td>
+				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalColisionCosto('liviano', false), 0) ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:20px;'>Taller Colisión Uno a Uno</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/ColisionUnoCosto.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getColisionUnoCosto('liviano', false), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$0</td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getColisionUnoCosto('liviano', false), 0); ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:20px;'>Taller Colisión Aseguradoras</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/ColisionAseguradorasCosto.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getColisionAseguradorasCosto('liviano', false), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$0</td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getColisionAseguradorasCosto('liviano', false), 0); ?></td>
+			</tr>
+			<!-- <tr>
 				<td style='padding-left:20px;'>Costo de venta Colisión</td>
 				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasColision.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasColision('liviano', false, false), 0) ?></a></td>
 				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasColision.php?tipo=liviano&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasColision('liviano', false, true), 0) ?></a></td>
 				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getVentasColision('liviano', false, false) + $informe->getVentasColision('liviano', false, true), 0); ?></td>
-			</tr>
+			</tr> -->
 			<tr>
 				<td style='padding-left:20px;'>Costo de venta Garantías</td>
 				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasGarantias.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasGarantias('liviano', false, false), 0) ?></a></td>
@@ -466,18 +546,42 @@
 				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasInternos.php?tipo=liviano&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasInternos('liviano', false, true), 0) ?></a></td>
 				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getVentasInternos('liviano', false, false) + $informe->getVentasInternos('liviano', false, true), 0); ?></td>
 			</tr>
-			<tr>
+			<!-- <tr>
 				<td style='padding-left:20px;'>Costo de venta Alternos</td>
 				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasAlternos.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasAlternos('liviano', false, false), 0) ?></a></td>
 				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasAlternos.php?tipo=liviano&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasAlternos('liviano', false, true), 0) ?></a></td>
 				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getVentasAlternos('liviano', false, false) + $informe->getVentasAlternos('liviano', false, true), 0); ?></td>
+			</tr> -->
+			<tr>
+				<td style='font-weight:bold;'>Alternos</td>
+				<td style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalAlternosCosto('liviano', false, false), 0); ?></td>
+				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalAlternosCosto('liviano', false, true), 0); ?></td>
+				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalAlternosCosto('liviano', false, false) + $informe->getTotalAlternosCosto('liviano', false, true), 0); ?></td>
 			</tr>
 			<tr>
+				<td style='padding-left:20px;'>Alternos Taller</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/AlternosTallerCosto.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getAlternosTallerCosto('liviano', false, false), 0); ?></a></td>
+				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/AlternosTallerCosto.php?tipo=liviano&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getAlternosTallerCosto('liviano', false, true), 0); ?></a></td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getAlternosTallerCosto('liviano', false, false) + $informe->getAlternosTallerCosto('liviano', false, true), 0); ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:20px;'>Alternos Colisión</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/AlternosColisionCosto.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getAlternosColisionCosto('liviano', false, false), 0); ?></a></td>
+				<td class='coa' style="text-align:right;">$0</td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getAlternosColisionCosto('liviano', false, false), 0); ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:20px;'>Alternos Mostrador</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/AlternosMostradorCosto.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getAlternosMostradorCosto('liviano', false, false), 0); ?></a></td>
+				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/AlternosMostradorCosto.php?tipo=liviano&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getAlternosMostradorCosto('liviano', false, true), 0); ?></a></td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getAlternosMostradorCosto('liviano', false, false) + $informe->getAlternosMostradorCosto('liviano', false, true), 0); ?></td>
+			</tr>
+			<!-- <tr>
 				<td style='padding-left:20px;'>Repuestos Flotas Otras Marcas</td>
 				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/CostosRepuestosFlotasOtrasMarcas.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostoRepuestosFlotasOtrasMarcas('liviano', false, false), 0) ?></a></td>
 				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/CostosRepuestosFlotasOtrasMarcas.php?tipo=liviano&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostoRepuestosFlotasOtrasMarcas('liviano', false, true), 0) ?></a></td>
 				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getCostoRepuestosFlotasOtrasMarcas('liviano', false, false) + $informe->getCostoRepuestosFlotasOtrasMarcas('liviano', false, true), 0); ?></td>
-			</tr>
+			</tr> -->
 			<tr>
 				<td style='padding-left:20px;background-color:#C0C0C0 !important'>Repuestos Flotas Chevrolet</td>
 				<td style="text-align:right;background-color:#C0C0C0 !important">$<?php echo Moneda::getMoneda($informe->getMostradorSoloFlotas('liviano', false, 'totalc') + $informe->getMecanicaRapidaFlotas('liviano', false, false, 'totalc') + $informe->getMecanicaEspecializadaFlotas('liviano', false, false, 'totalc'), 0); ?></td>
@@ -502,29 +606,110 @@
 				<td colspan=4 style="background-color:#1f497d;color:white;font-weight:bold;">COSTOS DETAL PESADOS</td>
 			</tr>
 			<tr>
-				<td style='font-weight:bold;'>Costo de ventas</td>
-				<td style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalCostosVenta('pesados', false, false), 0) ?></td>
-				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalCostosVenta('pesados', false, true), 0) ?></td>
-				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalCostosVenta('pesados', false, false) + $informe->getTotalCostosVenta('pesados', false, true), 0) ?></td>
+				<td style='font-weight:bold;'><b>Mostrador</b></td>
+				<td style="text-align:right;font-weight:bold;"><b>$<?php echo Moneda::getMoneda($informe->getVentasMostrador('pesados', false, false), 0) ?></b></td>
+				<td class='coa' style="text-align:right;font-weight:bold;"><b>$<?php echo Moneda::getMoneda($informe->getVentasMostrador('pesados', false, true), 0) ?></b></td>
+				<td class='coa' style="text-align:right;font-weight:bold;"><b>$<?php 
+					echo Moneda::getMoneda($informe->getVentasMostrador('pesados', false, false) + $informe->getVentasMostrador('pesados', false, true), 0); 
+				?></b></td>
 			</tr>
 			<tr>
-				<td style='padding-left:20px;'>Costo de venta Mostrador</td>
-				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasMostrador.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasMostrador('pesados'), false, false) ?></a></td>
-				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasMostrador.php?tipo=pesados&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasMostrador('pesados', false, true), 0) ?></a></td>
-				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getVentasMostrador('pesados', false, false) + $informe->getVentasMostrador('pesados', false, true), 0); ?></td>
+				<td style='padding-left:20px;'>Mostrador solo flotas</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MostradorCostosSoloFlotas.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostoVentasSoloFlotas(['FA', 'FRD'], 'pesados'), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$0</td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getCostoVentasSoloFlotas(['FA', 'FRD'], 'pesados', false), 0); ?></td>
 			</tr>
 			<tr>
-				<td style='padding-left:20px;'>Costo de venta Taller</td>
-				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasTaller.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasTaller('pesados', false, false), 0) ?></a></td>
-				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasTaller.php?tipo=pesados&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasTaller('pesados', false, true), 0) ?></a></td>
-				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getVentasTaller('pesados', false, false) + $informe->getVentasTaller('pesados', false, true), 0); ?></td>
+				<td style='padding-left:20px;'>Mostrador Colisión / Aseguradoras</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MostradorCostosColision.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostoVentasColision(['FA', 'FRD'],'pesados'), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$0</td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getCostoVentasColision(['FA', 'FRD'], 'pesados', false), 0); ?></td>
 			</tr>
 			<tr>
+				<td style='padding-left:20px;'>Mostrador Mantenimiento / Desgaste</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MostadorMantenimientoDesgaste.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostosMostadorMantenimientoDesgaste([['FA', 'FRD']], 'pesados'), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$0</td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getCostosMostadorMantenimientoDesgaste(['FA', 'FRD'], 'pesados'), false) ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:20px;'>Mostrador (Otros) / Ventas Externas</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MostadorCostosOtrosVentasExternas.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostoVentasExternas(['FA', 'FRD'], 'pesados'), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$0</td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getCostoVentasExternas(['FA', 'FRD'], 'pesados', false). 0); ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:20px;'>Mostrador Solochevrolet</td>
+				<td style="text-align:right;">$0</td>
+				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MostradorCostosSolochevrolet.php?tipo=pesados&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostoVentasSoloChevrolet('pesados', false), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getCostoVentasSoloChevrolet('pesados'), false) ?></td>
+			</tr>
+			<tr>
+				<td style='font-weight:bold;'>Taller Mecánica y Mantenimiento</td>
+				<td style="text-align:right;font-weight:bold;"><b>$<?php echo Moneda::getMoneda($informe->getVentasTaller('pesados', false, false), 0); ?></b></td>
+				<td class='coa' style="text-align:right;font-weight:bold;"><b>$<?php echo Moneda::getMoneda($informe->getVentasTaller('pesados', false, true), 0); ?></b></td>
+				<td class='coa' style="text-align:right;font-weight:bold;"><b>$<?php echo Moneda::getMoneda($informe->getVentasTaller('pesados', false, false) + $informe->getVentasTaller('pesados', false, true), 0); ?></b></td>
+			</tr>
+			<tr>
+				<td style='padding-left:20px;font-weight:bold;'><b>Mecánica Rápida</b></td>
+				<td style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalMecanicaRapidaCostos('pesados', false, false), 0); ?></td>
+				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalMecanicaRapidaCostos('pesados', false, true), 0) ?></td>
+				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalMecanicaRapidaCostos('pesados', false, false) + $informe->getTotalMecanicaRapidaCostos('pesados', false, true), 0); ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:40px;'>Taller solo flotas</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MecanicaRapidaFlotasCostos.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getMecanicaRapidaFlotasCostos('pesados', false, false), 0) ?></a></td>
+				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MecanicaRapidaFlotasCostos.php?tipo=pesados&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getMecanicaRapidaFlotasCostos('pesados', false, true), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getMecanicaRapidaFlotasCostos('pesados', false, false) + $informe->getMecanicaRapidaFlotasCostos('pesados', false, true), 0) ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:40px;'>Taller Uno a Uno</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MecanicaRapidaUnoCostos.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getMecanicaRapidaUnoCostos('pesados', false, false), 0) ?></a></td>
+				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MecanicaRapidaUnoCostos.php?tipo=pesados&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getMecanicaRapidaUnoCostos('pesados', false, true), 0); ?></a></td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getMecanicaRapidaUnoCostos('pesados', false, false) + $informe->getMecanicaRapidaUnoCostos('pesados', false, true), 0) ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:20px;font-weight:bold;'><b>Mecánica Especializada</b></td>
+				<td style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalMecanicaEspecializadaCostos('pesados', false, false), 0) ?></td>
+				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalMecanicaEspecializadaCostos('pesados', false, true), 0) ?></td>
+				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalMecanicaEspecializadaCostos('pesados', false, false) + $informe->getTotalMecanicaEspecializadaCostos('pesados', false, true), 0); ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:40px;'>Taller solo flotas</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MecanicaEspecializadaFlotasCostos.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getMecanicaEspecializadaFlotasCostos('pesados', false, false), 0) ?></a></td>
+				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MecanicaEspecializadaFlotasCostos.php?tipo=pesados&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getMecanicaEspecializadaFlotasCostos('pesados', false, true), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getMecanicaEspecializadaFlotasCostos('pesados', false, false) + $informe->getMecanicaEspecializadaFlotasCostos('pesados', false, true), 0) ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:40px;'>Taller Uno a Uno</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MecanicaEspecializadaUnoCostos.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getMecanicaEspecializadaUnoCostos('pesados', false, false), 0) ?></a></td>
+				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/MecanicaEspecializadaUnoCostos.php?tipo=pesados&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getMecanicaEspecializadaUnoCostos('pesados', false, true), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getMecanicaEspecializadaUnoCostos('pesados', false, false) + $informe->getMecanicaEspecializadaUnoCostos('pesados', false, true), 0) ?></td>
+			</tr>
+
+			<tr>
+				<td style='font-weight:bold;'>Colisión</td>
+				<td style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalColisionCosto('pesados'), 0); ?></td>
+				<td class='coa' style="text-align:right;font-weight:bold;">$0</td>
+				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalColisionCosto('pesados', false), 0) ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:20px;'>Taller Colisión Uno a Uno</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/ColisionUnoCosto.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getColisionUnoCosto('pesados', false), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$0</td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getColisionUnoCosto('pesados', false), 0); ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:20px;'>Taller Colisión Aseguradoras</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/ColisionAseguradorasCosto.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getColisionAseguradorasCosto('pesados', false), 0) ?></a></td>
+				<td class='coa' style="text-align:right;">$0</td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getColisionAseguradorasCosto('pesados', false), 0); ?></td>
+			</tr>
+			<!-- <tr>
 				<td style='padding-left:20px;'>Costo de venta Colisión</td>
 				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasColision.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasColision('pesados', false, false), 0) ?></a></td>
 				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasColision.php?tipo=pesados&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasColision('pesados', false, true), 0) ?></a></td>
 				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getVentasColision('pesados', false, false) + $informe->getVentasColision('pesados', false, true), 0); ?></td>
-			</tr>
+			</tr> -->
 			<tr>
 				<td style='padding-left:20px;'>Costo de venta Garantías</td>
 				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasGarantias.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasGarantias('pesados', false, false), 0) ?></a></td>
@@ -537,18 +722,42 @@
 				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasInternos.php?tipo=pesados&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasInternos('pesados', false, true), 0) ?></a></td>
 				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getVentasInternos('pesados', false, false) + $informe->getVentasInternos('pesados', false, true), 0); ?></td>
 			</tr>
-			<tr>
+			<!-- <tr>
 				<td style='padding-left:20px;'>Costo de venta Alternos</td>
 				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasAlternos.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasAlternos('pesados', false, false), 0) ?></a></td>
 				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/VentasAlternos.php?tipo=pesados&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getVentasAlternos('pesados', false, true), 0) ?></a></td>
 				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getVentasAlternos('pesados', false, false) + $informe->getVentasAlternos('pesados', false, true), 0); ?></td>
+			</tr> -->
+			<tr>
+				<td style='font-weight:bold;'>Alternos</td>
+				<td style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalAlternosCosto('pesados', false, false), 0); ?></td>
+				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalAlternosCosto('pesados', false, true), 0); ?></td>
+				<td class='coa' style="text-align:right;font-weight:bold;">$<?php echo Moneda::getMoneda($informe->getTotalAlternosCosto('pesados', false, false) + $informe->getTotalAlternosCosto('pesados', false, true), 0); ?></td>
 			</tr>
 			<tr>
+				<td style='padding-left:20px;'>Alternos Taller</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/AlternosTallerCosto.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getAlternosTallerCosto('pesados', false, false), 0); ?></a></td>
+				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/AlternosTallerCosto.php?tipo=pesados&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getAlternosTallerCosto('pesados', false, true), 0); ?></a></td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getAlternosTallerCosto('pesados', false, false) + $informe->getAlternosTallerCosto('pesados', false, true), 0); ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:20px;'>Alternos Colisión</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/AlternosColisionCosto.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getAlternosColisionCosto('pesados', false, false), 0); ?></a></td>
+				<td class='coa' style="text-align:right;">$0</td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getAlternosColisionCosto('pesados', false, false), 0); ?></td>
+			</tr>
+			<tr>
+				<td style='padding-left:20px;'>Alternos Mostrador</td>
+				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/AlternosMostradorCosto.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getAlternosMostradorCosto('pesados', false, false), 0); ?></a></td>
+				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/AlternosMostradorCosto.php?tipo=pesados&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getAlternosMostradorCosto('pesados', false, true), 0); ?></a></td>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getAlternosMostradorCosto('pesados', false, false) + $informe->getAlternosMostradorCosto('pesados', false, true), 0); ?></td>
+			</tr>
+			<!-- <tr>
 				<td style='padding-left:20px;'>Repuestos Flotas Otras Marcas</td>
 				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/CostosRepuestosFlotasOtrasMarcas.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostoRepuestosFlotasOtrasMarcas('pesados', false, false), 0) ?></a></td>
 				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/CostosRepuestosFlotasOtrasMarcas.php?tipo=pesados&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostoRepuestosFlotasOtrasMarcas('pesados', false, true), 0) ?></a></td>
-				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getCostoRepuestosFlotasOtrasMarcas('pesados', false, false) + $informe->getCostoRepuestosFlotasOtrasMarcas('pesados', false, true), 0); ?></td>
-			</tr>
+				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getCostoRepuestosFlotasOtrasMarcas('pesados', false, false) + $informe->getCostoRepuestosFlotasOtrasMarcas('liviano', false, true), 0); ?></td>
+			</tr> -->
 			<tr>
 				<td style='padding-left:20px;background-color:#C0C0C0 !important'>Repuestos Flotas Chevrolet</td>
 				<td style="text-align:right;background-color:#C0C0C0 !important">$<?php echo Moneda::getMoneda($informe->getMostradorSoloFlotas('pesados', false, 'totalc') + $informe->getMecanicaRapidaFlotas('pesados', false, false, 'totalc') + $informe->getMecanicaEspecializadaFlotas('pesados', false, false, 'totalc'), 0); ?></td>

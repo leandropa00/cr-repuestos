@@ -1973,7 +1973,7 @@
 			
 			BD::desconectar();
 
-			//Actualización mecánica rápida y mecánica especializada
+			//Actualización mecánica rápida yñcánica especializada
 			BD::changeInstancia("mysql");
 			$query = "update rp_ventasxasesor set tipo_mecanica=1 where informe_id=" . $this->id . " and numero_ot in (select numero_orden from rp_perfil_taller where mecanica_especializada=1)";
 			if (!BD::sql_query($query)) {
@@ -1987,7 +1987,7 @@
 				die ("<br />Error actualizando tipo mecanica rapida:<br />" . $query);
 			}
 
-		//Marcación de los registros con el ID del item que ocupa en la tabla final
+		//Marcación de los registros ñ el ID del item que ocupa en la tabla final
 			//1 - LIVIANOS - Mostrador solo flotas
 			$codigo = 1;
 			$query = "update rp_ventasxasesor v INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
@@ -2177,7 +2177,7 @@
 			$codigo = 17;
 			$query = "update rp_ventasxasesor v INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
 				set ubicacion_item=$codigo
-				WHERE v.tipo in ('FS', 'FSC', 'FA', 'FRD', 'FT', 'FC', 'FL', 'FPC') AND v.nombre_grupo = 'ACCES'";
+				WHERE v.tipo in ('FS', 'FSC', 'FA', 'FRD', 'FT', 'FC', 'FL', 'FPC')";
 			if (!BD::sql_query($query)) {
 				echo "<b><font color=red>" . BD::getLastError() . "</font></b>";
 				die ("<br />Error actualizando el índice para los items de " . self::$item[$codigo]);
@@ -2604,7 +2604,7 @@
 			self::$querys[md5($sql)] = BD::sql_query($sql) or die("ErrorQuery: " . BD::getLastError());
 			$t2 = time();
 			$dif =  ($t2 - $t);
-			if ($dif > 10)
+			if ($dif > 3)
 				echo "(" . $sql . " $dif ms)";
 			return self::$querys[md5($sql)];
 		}
@@ -2921,4 +2921,744 @@
 				+$this->getTotalCOSMecanicaAseguradoras('liviano')+ $this->getTotalCOSMecanicaAseguradoras('pesados');
 		}
 
+		/**
+		 * COSTOS
+		 */
+		public function getColisionUnoCostos($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			$documentos = $chevrolet ? array('XXXX') : array('FL');
+			BD::changeInstancia("mysql");
+			$operador_access = $ACCESS ? "" : "NOT";
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='gm' 
+					AND v.tipo in ('" . implode("', '", $documentos) . "') 
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND v.devolucion=0
+					AND c.clasificacion<>8
+					AND vehiculo_tipo='$tipo_vehiculo'");
+			$return = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+
+			//Devoluciones de meses anteriores
+			$codigo = $tipo_vehiculo == "liviano" ? 10 : 10010;
+			$r = self::queryMYSQL("select sum(v.totalc) total FROM rp_ventasxasesor v 
+				WHERE v.ubicacion_item=$codigo AND v.informe_id<>" . $this->id . " 
+					AND v.tipo in ('" . implode("', '", $documentos) . "') 
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					and concat(v.tipo, v.numero) in (
+					select concat(d.tipo_link,d.numero_link) from rp_ventasxasesor d where d.sw=2 and d.informe_id=" . $this->id . ")");
+			$devoluciones = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+			$return -= $devoluciones;
+			return $return;
+		}
+
+		public function getColisionUnoDataCostos($tipo_vehiculo = 'liviano', $ACCESS = false) {
+			$result = array();
+			$operador_access = $ACCESS ? "" : "NOT";
+			BD::changeInstancia("mysql");
+			$r = self::queryMYSQL("select v.*, c.nombre cliente_nombre
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='gm' 
+					AND v.tipo in ('FL') 
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND c.clasificacion<>8
+					AND vehiculo_tipo='$tipo_vehiculo'");
+			while ($f = BD::obtenerRegistro($r)) $result[] = $f;
+			return $result;
+		}
+
+		public function getColisionAseguradorasCostos($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			$documentos = $chevrolet ? array('XXXX') : array('FL');
+			BD::changeInstancia("mysql");
+			$operador_access = $ACCESS ? "" : "NOT";
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='gm' 
+					AND v.tipo in ('" . implode("', '", $documentos) . "') 
+					AND v.devolucion=0
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND c.clasificacion=8
+					AND vehiculo_tipo='$tipo_vehiculo'");
+			$return = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+
+			//Devoluciones de meses anteriores
+			$codigo = $tipo_vehiculo == "liviano" ? 11 : 10011;
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE 
+					v.informe_id<>" . $this->id . "
+					AND v.tipo_proveedor='gm' 
+					AND v.tipo in ('" . implode("', '", $documentos) . "') 
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND c.clasificacion=8
+					AND vehiculo_tipo='$tipo_vehiculo'
+					and concat(v.tipo, v.numero) in (
+					select concat(d.tipo_link,d.numero_link) from rp_ventasxasesor d where d.sw=2 and d.informe_id=" . $this->id . ")");
+			$devoluciones = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+			$return -= $devoluciones;
+			return $return;
+		}
+
+		public function getColisionAseguradorasDataCostos($tipo_vehiculo = 'liviano', $ACCESS = false) {
+			$result = array();
+			BD::changeInstancia("mysql");
+			$operador_access = $ACCESS ? "" : "NOT";
+			$r = self::queryMYSQL("select v.*, c.nombre cliente_nombre
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='gm' 
+					AND v.tipo in ('FL') 
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND c.clasificacion=8
+					AND vehiculo_tipo='$tipo_vehiculo'");
+			while ($f = BD::obtenerRegistro($r)) $result[] = $f;
+			return $result;
+		}
+
+		/**
+		 * MOSTRADOR
+		 */
+		public function getTotalCostosMostrador($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			if ($chevrolet)
+				return $this->getMostradorSolochevrolet($tipo_vehiculo, $ACCESS);
+			return $this->getMostradorSoloFlotas($tipo_vehiculo, $ACCESS) 
+				+ $this->getMostradorColision($tipo_vehiculo, $ACCESS) 
+				+ $this->getMostadorMantenimientoDesgaste($tipo_vehiculo, $ACCESS) 
+				+ $this->getMostadorOtrosVentasExternas($tipo_vehiculo, $ACCESS);
+		}
+
+		public function getCostoVentasSoloFlotas($documentos = array(), $tipo_vehiculo = '', $ACCESS = false, $tipo_proveedor = 'gm', $query_add = "") {
+			$operador_access = $ACCESS ? "" : "NOT";
+			if ($ACCESS !== -1) 			$query_add .= " AND v.nombre_grupo $operador_access in ('ACCES') ";
+			if ($tipo_vehiculo != "") 	$query_add .= " AND v.vehiculo_tipo='$tipo_vehiculo' ";
+			BD::changeInstancia("mysql");
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE 
+					v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='$tipo_proveedor' 
+					AND v.tipo in ('" . implode("','", $documentos) . "') 
+					AND c.clasificacion<>8
+					AND c.tipo_cliente = 'flota'
+					$query_add
+					AND v.devolucion=0");
+			$return = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+
+			//Devoluciones de meses anteriores
+			$codigo = 201;
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE 
+					v.informe_id<>" . $this->id . "
+					AND v.tipo_proveedor='$tipo_proveedor'
+					AND c.clasificacion<>8
+					AND c.tipo_cliente = 'flota'
+					$query_add
+					and concat(v.tipo, v.numero) in ( 
+						select concat(d.tipo_link,d.numero_link) 
+						from rp_ventasxasesor d where 
+							d.sw=2
+							AND d.tipo_link in ('" . implode("','", $documentos) . "') 
+							and d.informe_id=" . $this->id . "
+					)");
+			$devoluciones = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+			$return -= $devoluciones;
+			return $return;
+		}
+
+		public function getCostoVentasSoloFlotasData($tipo_vehiculo = '', $ACCESS = false, $tipo_proveedor = 'gm', $query_add = "") {
+			$result = array();
+			$documentos = array('FA', 'FRD');
+			$operador_access = $ACCESS ? "" : "NOT";
+			if ($ACCESS !== -1) 			$query_add .= " AND v.nombre_grupo $operador_access in ('ACCES') ";
+			if ($tipo_vehiculo != "") 	$query_add .= " AND v.vehiculo_tipo='$tipo_vehiculo' ";
+			BD::changeInstancia("mysql");
+			$r = self::queryMYSQL("select v.*, c.nombre cliente_nombre
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE 
+					v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='$tipo_proveedor' 
+					AND v.tipo in ('" . implode("','", $documentos) . "') 
+					AND c.clasificacion<>8
+					AND c.tipo_cliente = 'flota'
+					$query_add");
+			while ($f = BD::obtenerRegistro($r)) $result[] = $f;
+			return $result;
+		}
+
+		public function getCostoVentasColision($documentos = array(), $tipo_vehiculo = '', $ACCESS = false, $tipo_proveedor = 'gm', $query_add = "") {
+			$operador_access = $ACCESS ? "" : "NOT";
+			if ($ACCESS !== -1) 			$query_add .= " AND v.nombre_grupo $operador_access in ('ACCES') ";
+			if ($tipo_vehiculo != "") 	$query_add .= " AND v.vehiculo_tipo='$tipo_vehiculo' ";
+			BD::changeInstancia("mysql");
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE 
+					v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='$tipo_proveedor' 
+					AND v.tipo in ('" . implode("','", $documentos) . "') 
+					AND c.clasificacion=8
+					$query_add
+					AND v.devolucion=0");
+			$return = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+
+			//Devoluciones de meses anteriores
+			$codigo = 201;
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE 
+					v.informe_id<>" . $this->id . "
+					AND v.tipo_proveedor='$tipo_proveedor'
+					AND c.clasificacion=8
+					$query_add
+					and concat(v.tipo, v.numero) in ( 
+						select concat(d.tipo_link,d.numero_link) 
+						from rp_ventasxasesor d where 
+							d.sw=2
+							AND d.tipo_link in ('" . implode("','", $documentos) . "') 
+							and d.informe_id=" . $this->id . "
+					)");
+			$devoluciones = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+			$return -= $devoluciones;
+			return $return;
+		}
+
+		public function getCostoVentasColisionData($tipo_vehiculo = '', $ACCESS = false, $tipo_proveedor = 'gm', $query_add = "") {
+			$operador_access = $ACCESS ? "" : "NOT";
+			$documentos = array('FA', 'FRD');
+			if ($ACCESS !== -1) 			$query_add .= " AND v.nombre_grupo $operador_access in ('ACCES') ";
+			if ($tipo_vehiculo != "") 	$query_add .= " AND v.vehiculo_tipo='$tipo_vehiculo' ";
+			BD::changeInstancia("mysql");
+			$r = self::queryMYSQL("select v.*, c.nombre cliente_nombre
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE 
+					v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='$tipo_proveedor' 
+					AND v.tipo in ('" . implode("','", $documentos) . "') 
+					AND c.clasificacion=8
+					$query_add");
+			while ($f = BD::obtenerRegistro($r)) $result[] = $f;
+			return $result;
+		}
+
+		public function getCostosMostadorMantenimientoDesgaste($tipo_vehiculo, $ACCESS = false) {
+			BD::changeInstancia("mysql");
+			return 0;	//No se llena
+		}
+
+		public function getCostosMostadorMantenimientoDesgasteData($tipo_vehiculo, $ACCESS = false) {
+			BD::changeInstancia("mysql");
+			return array();
+		}
+
+		public function getCostoVentasExternas($documentos = array(), $tipo_vehiculo = '', $ACCESS = false, $tipo_proveedor = 'gm', $query_add = "") {
+			$operador_access = $ACCESS ? "" : "NOT";
+			if ($ACCESS !== -1) 			$query_add .= " AND v.nombre_grupo $operador_access in ('ACCES') ";
+			if ($tipo_vehiculo != "") 	$query_add .= " AND v.vehiculo_tipo='$tipo_vehiculo' ";
+			BD::changeInstancia("mysql");
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE 
+					v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='$tipo_proveedor' 
+					AND v.tipo in ('" . implode("','", $documentos) . "') 
+					AND c.tipo_cliente = 'particular'
+					$query_add
+					AND v.devolucion=0");
+			$return = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+
+			//Devoluciones de meses anteriores
+			$codigo = 201;
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE 
+					v.informe_id<>" . $this->id . "
+					AND v.tipo_proveedor='$tipo_proveedor'
+					AND c.tipo_cliente = 'particular'
+					$query_add
+					and concat(v.tipo, v.numero) in ( 
+						select concat(d.tipo_link,d.numero_link) 
+						from rp_ventasxasesor d where 
+							d.sw=2
+							AND d.tipo_link in ('" . implode("','", $documentos) . "') 
+							and d.informe_id=" . $this->id . "
+					)");
+			$devoluciones = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+			$return -= $devoluciones;
+			return $return;
+		}
+
+		public function getCostoVentasExternasData($tipo_vehiculo = '', $ACCESS = false, $tipo_proveedor = 'gm', $query_add = "") {
+			$result = array();
+			$documentos = array('FA', 'FRD');
+			$operador_access = $ACCESS ? "" : "NOT";
+			if ($ACCESS !== -1) 			$query_add .= " AND v.nombre_grupo $operador_access in ('ACCES') ";
+			if ($tipo_vehiculo != "") 	$query_add .= " AND v.vehiculo_tipo='$tipo_vehiculo' ";
+			BD::changeInstancia("mysql");
+			$r = self::queryMYSQL("select v.*, c.nombre cliente_nombre
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE 
+					v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='$tipo_proveedor' 
+					AND v.tipo in ('" . implode("','", $documentos) . "') 
+					AND c.tipo_cliente = 'particular'
+					$query_add");
+			while ($f = BD::obtenerRegistro($r)) $result[] = $f;
+			return $result;
+		}
+
+		public function getCostoVentasSoloChevrolet($tipo_vehiculo = '', $ACCESS = false, $tipo_proveedor = 'gm', $query_add = "") {
+			$operador_access = $ACCESS ? "" : "NOT";
+			if ($ACCESS !== -1) 			$query_add .= " AND v.nombre_grupo $operador_access in ('ACCES') ";
+			if ($tipo_vehiculo != "") 	$query_add .= " AND v.vehiculo_tipo='$tipo_vehiculo' ";
+			BD::changeInstancia("mysql");
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE 
+					v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='$tipo_proveedor' 
+					AND v.tipo in ('FS') 
+					$query_add
+					AND v.devolucion=0");
+			$return = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+
+			//Devoluciones de meses anteriores
+			$codigo = 201;
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE 
+					v.informe_id<>" . $this->id . "
+					AND v.tipo_proveedor='$tipo_proveedor'
+					$query_add
+					and concat(v.tipo, v.numero) in ( 
+						select concat(d.tipo_link,d.numero_link) 
+						from rp_ventasxasesor d where 
+							d.sw=2
+							AND d.tipo_link in ('FS') 
+							and d.informe_id=" . $this->id . "
+					)");
+			$devoluciones = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+			$return -= $devoluciones;
+			return $return;
+		}
+
+		public function getCostoVentasSoloChevroletData($tipo_vehiculo = '', $ACCESS = false, $tipo_proveedor = 'gm', $query_add = "") {
+			$result = array();
+			$operador_access = $ACCESS ? "" : "NOT";
+			if ($ACCESS !== -1) 			$query_add .= " AND v.nombre_grupo $operador_access in ('ACCES') ";
+			if ($tipo_vehiculo != "") 	$query_add .= " AND v.vehiculo_tipo='$tipo_vehiculo' ";
+			BD::changeInstancia("mysql");
+			$r = self::queryMYSQL("select v.*, c.nombre cliente_nombre
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE 
+					v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='$tipo_proveedor' 
+					AND v.tipo in ('FS') 
+					$query_add");
+			while ($f = BD::obtenerRegistro($r)) $result[] = $f;
+			return $result;
+		}
+
+		
+		/**
+		 * Taller Mecánica y Mantenimiento Costos
+		 */
+
+		 public function getTotalTallerMecanicaMantenimientoCostos($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			return $this->getTotalMecanicaRapidaCostos($tipo_vehiculo, $ACCESS, $chevrolet) + $this->getTotalMecanicaEspecializadaCostos($tipo_vehiculo, $ACCESS, $chevrolet);
+		}
+
+		public function getTotalMecanicaRapidaCostos($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			return $this->getMecanicaRapidaFlotasCostos($tipo_vehiculo, $ACCESS, $chevrolet)
+				+  $this->getMecanicaRapidaUnoCostos($tipo_vehiculo, $ACCESS, $chevrolet);
+		}
+
+		public function getMecanicaCostos($tipo_vehiculo, $ACCESS, $chevrolet, $tipo_cliente, $tipo_mecanica, $campo = 'totalc') {
+			BD::changeInstancia("mysql");
+			$operador_access = $ACCESS ? "" : "NOT";
+			$queryAdd = $tipo_mecanica == 1 ? " AND v.tipo_mecanica in ($tipo_mecanica, 0)" : " AND v.tipo_mecanica = $tipo_mecanica";
+			$documentos = ($chevrolet) ? array('FSC', 'NDSR', 'NCSR'): array('FC', 'FT', 'NCDR', 'FPC', 'EXAJ');
+			$r = self::queryMYSQL("select sum(v.$campo) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE v.informe_id=" . $this->id . " 
+					AND c.tipo_cliente='$tipo_cliente'
+					AND v.tipo_proveedor='gm'
+					and v.devolucion=0
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					$queryAdd
+					AND v.tipo in ('" . implode("', '", $documentos) . "') 
+					AND vehiculo_tipo='$tipo_vehiculo'");
+			$return = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+
+			//Restar devoluciones de meses anteriores
+			// $codigo = $tipo_vehiculo == "liviano" ? 6 : 1006;
+			$r = self::queryMYSQL("select sum(v.$campo) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion	
+				WHERE 
+					v.informe_id<>" . $this->id . " 
+					AND c.tipo_cliente='$tipo_cliente'
+					AND v.tipo_proveedor='gm'
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					$queryAdd
+					AND v.vehiculo_tipo='$tipo_vehiculo'
+
+					and concat(v.tipo, v.numero) in (
+						select concat(d.tipo_link,d.numero_link) 
+						FROM rp_ventasxasesor d WHERE 
+							d.tipo_link in ('" . implode("', '", $documentos) . "') 
+							and d.sw=2 
+							and d.informe_id=" . $this->id . "
+					)");
+			$devoluciones = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+			$return -= $devoluciones;
+			return $return;
+		}
+
+		public function getMecanicaDataCostos($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false, $tipo_cliente, $tipo_mecanica) {
+			$result = array();
+			$operador_access = $ACCESS ? "" : "NOT";
+			$documentos = ($chevrolet) ? array('FSC', 'NDSR', 'NCSR'): array('FC', 'FT', 'NCDR', 'FPC', 'EXAJ');
+			$queryAdd = $tipo_mecanica == 1 ? " AND v.tipo_mecanica in ($tipo_mecanica, 0)" : " AND v.tipo_mecanica = $tipo_mecanica";
+			BD::changeInstancia("mysql");
+			$r = self::queryMYSQL("select v.*, c.nombre cliente_nombre
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE v.informe_id=" . $this->id . " 
+					AND c.tipo_cliente='$tipo_cliente'
+					AND v.tipo_proveedor='gm' 
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					$queryAdd
+					AND v.tipo in ('" . implode("', '", $documentos) . "')
+					AND vehiculo_tipo='$tipo_vehiculo'");
+			while ($f = BD::obtenerRegistro($r)) $result[] = $f;
+			return $result;
+		}
+
+		public function getMecanicaRapidaFlotasCostos($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false, $campo = 'totalc') {
+			return $this->getMecanicaCostos($tipo_vehiculo, $ACCESS, $chevrolet, 'flota', 2, $campo);
+		}
+
+		public function getMecanicaRapidaFlotasDataCostos($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			return $this->getMecanicaDataCostos($tipo_vehiculo, $ACCESS, $chevrolet, 'flota', 2);
+		}
+		
+		public function getMecanicaRapidaUnoCostos($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			return $this->getMecanicaCostos($tipo_vehiculo, $ACCESS, $chevrolet, 'particular', 2);
+		}
+
+		public function getMecanicaRapidaUnoDataCostos($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			return $this->getMecanicaDataCostos($tipo_vehiculo, $ACCESS, $chevrolet, 'particular', 2);
+		}
+
+	
+	
+		public function getTotalMecanicaEspecializadaCostos($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			return $this->getMecanicaEspecializadaFlotasCostos($tipo_vehiculo, $ACCESS, $chevrolet)
+				+  $this->getMecanicaEspecializadaUnoCostos($tipo_vehiculo, $ACCESS, $chevrolet);
+		}
+
+
+		public function getMecanicaEspecializadaFlotasCostos($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false, $campo = 'totalc') {
+			return $this->getMecanicaCostos($tipo_vehiculo, $ACCESS, $chevrolet, 'flota', 1, $campo);
+		}
+		public function getMecanicaEspecializadaFlotasDataCostos($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			return $this->getMecanicaDataCostos($tipo_vehiculo, $ACCESS, $chevrolet, 'flota', 1);
+		}
+		
+		public function getMecanicaEspecializadaUnoCostos($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			return $this->getMecanicaCostos($tipo_vehiculo, $ACCESS, $chevrolet, 'particular', 1);
+		}
+		public function getMecanicaEspecializadaUnoDataCostos($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			return $this->getMecanicaDataCostos($tipo_vehiculo, $ACCESS, $chevrolet, 'particular', 1);
+		}
+
+		/** 
+		 * COLISION COSTOS
+		*/
+		public function getTotalColisionCosto($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			return $this->getColisionUnoCosto($tipo_vehiculo, $ACCESS, $chevrolet) + $this->getColisionAseguradorasCosto($tipo_vehiculo, $ACCESS, $chevrolet);
+		}
+
+		public function getColisionUnoCosto($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			$documentos = $chevrolet ? array('XXXX') : array('FL');
+			BD::changeInstancia("mysql");
+			$operador_access = $ACCESS ? "" : "NOT";
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='gm' 
+					AND v.tipo in ('" . implode("', '", $documentos) . "') 
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND v.devolucion=0
+					AND c.clasificacion<>8
+					AND vehiculo_tipo='$tipo_vehiculo'");
+			$return = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+
+			//Devoluciones de meses anteriores
+			$codigo = $tipo_vehiculo == "liviano" ? 10 : 10010;
+			$r = self::queryMYSQL("select sum(v.totalc) total FROM rp_ventasxasesor v 
+				WHERE v.ubicacion_item=$codigo AND v.informe_id<>" . $this->id . " 
+					AND v.tipo in ('" . implode("', '", $documentos) . "') 
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					and concat(v.tipo, v.numero) in (
+					select concat(d.tipo_link,d.numero_link) from rp_ventasxasesor d where d.sw=2 and d.informe_id=" . $this->id . ")");
+			$devoluciones = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+			$return -= $devoluciones;
+			return $return;
+		}
+
+		public function getColisionUnoDataCosto($tipo_vehiculo = 'liviano', $ACCESS = false) {
+			$result = array();
+			$operador_access = $ACCESS ? "" : "NOT";
+			BD::changeInstancia("mysql");
+			$r = self::queryMYSQL("select v.*, c.nombre cliente_nombre
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='gm' 
+					AND v.tipo in ('FL') 
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND c.clasificacion<>8
+					AND vehiculo_tipo='$tipo_vehiculo'");
+			while ($f = BD::obtenerRegistro($r)) $result[] = $f;
+			return $result;
+		}
+
+		public function getColisionAseguradorasCosto($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			$documentos = $chevrolet ? array('XXXX') : array('FL');
+			BD::changeInstancia("mysql");
+			$operador_access = $ACCESS ? "" : "NOT";
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='gm' 
+					AND v.tipo in ('" . implode("', '", $documentos) . "') 
+					AND v.devolucion=0
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND c.clasificacion=8
+					AND vehiculo_tipo='$tipo_vehiculo'");
+			$return = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+
+			//Devoluciones de meses anteriores
+			$codigo = $tipo_vehiculo == "liviano" ? 11 : 10011;
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE 
+					v.informe_id<>" . $this->id . "
+					AND v.tipo_proveedor='gm' 
+					AND v.tipo in ('" . implode("', '", $documentos) . "') 
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND c.clasificacion=8
+					AND vehiculo_tipo='$tipo_vehiculo'
+					and concat(v.tipo, v.numero) in (
+					select concat(d.tipo_link,d.numero_link) from rp_ventasxasesor d where d.sw=2 and d.informe_id=" . $this->id . ")");
+			$devoluciones = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+			$return -= $devoluciones;
+			return $return;
+		}
+
+		public function getColisionAseguradorasDataCosto($tipo_vehiculo = 'liviano', $ACCESS = false) {
+			$result = array();
+			BD::changeInstancia("mysql");
+			$operador_access = $ACCESS ? "" : "NOT";
+			$r = self::queryMYSQL("select v.*, c.nombre cliente_nombre
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='gm' 
+					AND v.tipo in ('FL') 
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND c.clasificacion=8
+					AND vehiculo_tipo='$tipo_vehiculo'");
+			while ($f = BD::obtenerRegistro($r)) $result[] = $f;
+			return $result;
+		}
+
+		public function getTotalAlternosCosto($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			return $this->getAlternosTallerCosto($tipo_vehiculo, $ACCESS, $chevrolet) 
+				+ $this->getAlternosColisionCosto($tipo_vehiculo, $ACCESS, $chevrolet) 
+				+ $this->getAlternosMostradorCosto($tipo_vehiculo, $ACCESS, $chevrolet);
+		}
+
+		public function getAlternosTallerCosto($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			BD::changeInstancia("mysql");
+			$operador_access = $ACCESS ? "" : "NOT";
+			$documentos = $chevrolet ? array('FSC') : array('FT', 'FC', 'FG', 'FPC');
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='alterno' 
+					AND v.tipo in ('" . implode("', '", $documentos) . "')
+					AND v.devolucion=0
+					AND replace(v.referencia, '*/', '') in (select material from rp_maestro)
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND vehiculo_tipo='$tipo_vehiculo'");
+			$return = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+			
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion	
+				WHERE 
+					v.informe_id<>" . $this->id . " 
+					AND v.tipo_proveedor='alterno' 
+					AND replace(v.referencia, '*/', '') in (select material from rp_maestro)
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND vehiculo_tipo='$tipo_vehiculo'
+					AND concat(v.tipo, v.numero) in (
+						select concat(d.tipo_link,d.numero_link) FROM rp_ventasxasesor d where d.sw=2 
+						AND d.tipo_link in ('" . implode("', '", $documentos) . "') and d.informe_id=" . $this->id . ")");
+			$devoluciones = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+			$return -= $devoluciones;
+			return $return;
+		}
+
+		public function getAlternosTallerDataCosto($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			$result = array();
+			$operador_access = $ACCESS ? "" : "NOT";
+			$documentos = $chevrolet ? array('FSC') : array('FT', 'FC', 'FG', 'FPC');
+			BD::changeInstancia("mysql");
+			$r = self::queryMYSQL("select v.*, c.nombre cliente_nombre
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='alterno' 
+					AND v.tipo in ('" . implode("', '", $documentos) . "')
+					AND v.devolucion=0
+					AND replace(v.referencia, '*/', '') in (select material from rp_maestro)
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND vehiculo_tipo='$tipo_vehiculo'");
+			while ($f = BD::obtenerRegistro($r)) $result[] = $f;
+			return $result;
+		}
+
+		public function getAlternosColisionCosto($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			BD::changeInstancia("mysql");
+			$operador_access = $ACCESS ? "" : "NOT";
+			$documentos = $chevrolet ? array('XX') : array('FL');
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='alterno' 
+					AND v.tipo in ('" . implode("', '", $documentos) . "')
+					AND replace(v.referencia, '*/', '') in (select material from rp_maestro)
+					AND v.referencia LIKE '%*/'
+					AND v.devolucion=0
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND vehiculo_tipo='$tipo_vehiculo'");
+			$return = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+
+			//Devoluciones de meses anteriores
+			$codigo = $tipo_vehiculo == "liviano" ? 15 : 10015;
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE 
+					v.informe_id<>" . $this->id . " 
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND replace(v.referencia, '*/', '') in (select material from rp_maestro)
+					AND v.referencia LIKE '%*/'
+					AND v.ubicacion_item=$codigo
+					and concat(v.tipo, v.numero) in (
+					select concat(d.tipo_link,d.numero_link) from rp_ventasxasesor d where d.sw=2
+						AND d.tipo_link in ('" . implode("', '", $documentos) . "') and  d.informe_id=" . $this->id . ")");
+			$devoluciones = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+			$return -= $devoluciones;
+			return $return;
+		}
+
+		public function getAlternosColisionDataCosto($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			$result = array();
+			$operador_access = $ACCESS ? "" : "NOT";
+			$documentos = $chevrolet ? array('XX') : array('FL');
+			BD::changeInstancia("mysql");
+			$r = self::queryMYSQL("select v.*, c.nombre cliente_nombre
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='alterno' 
+					AND v.tipo in ('" . implode("', '", $documentos) . "')
+					AND replace(v.referencia, '*/', '') in (select material from rp_maestro)
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND vehiculo_tipo='$tipo_vehiculo'");
+			while ($f = BD::obtenerRegistro($r)) $result[] = $f;
+			return $result;
+		}
+
+		public function getAlternosMostradorCosto($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			BD::changeInstancia("mysql");
+			$operador_access = $ACCESS ? "" : "NOT";
+			$documentos = $chevrolet ? array('FS') : array('FA', 'FRD');
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+				WHERE v.informe_id=" . $this->id . " 
+					AND v.tipo_proveedor='alterno' 
+					AND v.tipo in ('" . implode("', '", $documentos) . "')
+					AND v.devolucion=0
+					AND replace(v.referencia, '*/', '') in (select material from rp_maestro)
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND vehiculo_tipo='$tipo_vehiculo'");
+			$return = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+		
+			$r = self::queryMYSQL("select sum(v.totalc) total 
+				FROM rp_ventasxasesor v 
+				INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion	
+				WHERE 
+					v.informe_id<>" . $this->id . " 
+					AND v.tipo_proveedor='alterno' 
+					AND replace(v.referencia, '*/', '') in (select material from rp_maestro)
+					AND v.nombre_grupo $operador_access in ('ACCES')
+					AND vehiculo_tipo='$tipo_vehiculo'
+					AND concat(v.tipo, v.numero) in (
+						select concat(d.tipo_link,d.numero_link) FROM rp_ventasxasesor d where d.sw=2 
+						AND d.tipo_link in ('" . implode("', '", $documentos) . "') and d.informe_id=" . $this->id . "
+					)");
+			$devoluciones = ($f = BD::obtenerRegistro($r)) ? $f["total"] : 0;
+			$return -= $devoluciones;
+			return $return;
+		}
+
+		public function getAlternosMostradorDataCosto($tipo_vehiculo = 'liviano', $ACCESS = false, $chevrolet = false) {
+			$result = array();
+			$documentos = $chevrolet ? array('FS') : array('FA', 'FRD');
+			BD::changeInstancia("mysql");
+			$operador_access = $ACCESS ? "" : "NOT";
+			$r = self::queryMYSQL("select v.*, c.nombre cliente_nombre
+					FROM rp_ventasxasesor v 
+					INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
+					WHERE v.informe_id=" . $this->id . " 
+						AND v.tipo_proveedor='alterno' 
+						AND v.tipo in ('" . implode("', '", $documentos) . "')
+						AND replace(v.referencia, '*/', '') in (select material from rp_maestro)
+						AND v.nombre_grupo $operador_access in ('ACCES')
+						AND vehiculo_tipo='$tipo_vehiculo'");
+			while ($f = BD::obtenerRegistro($r)) $result[] = $f;
+			return $result;
+		}
 	}
