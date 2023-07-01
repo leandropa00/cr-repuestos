@@ -2617,16 +2617,16 @@
 
 		public static function queryMYSQL($sql) {
 			BD::changeInstancia("mysql");
-			$t = time();
+			// $t = time();
 			if (isset(self::$querys[md5($sql)])) {
 				mysqli_data_seek(self::$querys[md5($sql)], 0);
 				return self::$querys[md5($sql)];
 			}
 			self::$querys[md5($sql)] = BD::sql_query($sql) or die("ErrorQuery: " . BD::getLastError());
-			$t2 = time();
-			$dif =  ($t2 - $t);
-			if ($dif > 3)
-				echo "(" . $sql . " $dif ms)";
+			// $t2 = time();
+			// $dif =  ($t2 - $t);
+			// if ($dif > 3)
+			// 	echo "(" . $sql . " $dif ms)";
 			return self::$querys[md5($sql)];
 		}
 
