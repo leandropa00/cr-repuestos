@@ -1831,16 +1831,37 @@
 			}
 			BD::changeInstancia("mysql");
 			$fecha_corte = $this->getPeriodo()->format('Y-m-t');
-			$query = "update rp_ubicacion_repuestos set edad=case 
-			when fec_ultima_salida is null and fec_ultima_entrada is null and fecha_creacion is null then 'N-A' 
-			when PERIOD_DIFF(EXTRACT(YEAR_MONTH FROM '$fecha_corte'), EXTRACT(YEAR_MONTH FROM ifnull(fec_ultima_salida, ifnull(fec_ultima_entrada, fecha_creacion)))) < 12 then '0M-12M' 
-			when PERIOD_DIFF(EXTRACT(YEAR_MONTH FROM '$fecha_corte'), EXTRACT(YEAR_MONTH FROM ifnull(fec_ultima_salida, ifnull(fec_ultima_entrada, fecha_creacion)))) < 24 then '12M-24M'
-			else '24M-MAS' end WHERE informe_id=" . $this->id;
+			$query = "UPDATE rp_ubicacion_repuestos 
+				SET edad = CASE
+					WHEN 
+						fec_ultima_salida IS NULL 
+						AND fec_ultima_entrada IS NULL 
+						AND fecha_creacion IS NULL 
+					THEN 'N-A' 
+					
+					WHEN 
+						0.0328767 * DATEDIFF(
+							'$fecha_corte', 
+							IFNULL(fec_ultima_salida, IFNULL(fec_ultima_entrada, fecha_creacion))
+						) < 12
+					THEN '0M-12M'
+					
+					WHEN 
+						0.0328767 * DATEDIFF(
+							'$fecha_corte', 
+							IFNULL(fec_ultima_salida, IFNULL(fec_ultima_entrada, fecha_creacion))
+						) < 24 
+					THEN '12M-24M'
+			
+					ELSE '24M-MAS'
+				END 
+				WHERE informe_id = {$this->id}";
+
 			if (!BD::sql_query($query)) {
-					echo "<b><font color=red>" . BD::getLastError() . "</font></b>";
-					BD::eliminar("rp_perfil_taller", array("informe_id" => $this->id));
-					BD::eliminar("rp_ubicacion_repuestos", array("informe_id" => $this->id));
-					die ("<br />Error actualizando la edad del inventario:<br />" . $query);
+				echo "<b><font color=red>" . BD::getLastError() . "</font></b>";
+				BD::eliminar("rp_perfil_taller", array("informe_id" => $this->id));
+				BD::eliminar("rp_ubicacion_repuestos", array("informe_id" => $this->id));
+				die ("<br />Error actualizando la edad del inventario:<br />" . $query);
 			}
 
 			//PERFIL TALLER
@@ -1987,7 +2008,7 @@
 				die ("<br />Error actualizando tipo mecanica rapida:<br />" . $query);
 			}
 
-		//Marcación de los registros ñ el ID del item que ocupa en la tabla final
+			//Marcación de los registros ñ el ID del item que ocupa en la tabla final
 			//1 - LIVIANOS - Mostrador solo flotas
 			$codigo = 1;
 			$query = "update rp_ventasxasesor v INNER JOIN cliente_tipo c ON v.nit_cliente=c.identificacion
