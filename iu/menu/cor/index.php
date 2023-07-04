@@ -576,12 +576,12 @@
 				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/AlternosMostradorCosto.php?tipo=liviano&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getAlternosMostradorCosto('liviano', false, true), 0); ?></a></td>
 				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getAlternosMostradorCosto('liviano', false, false) + $informe->getAlternosMostradorCosto('liviano', false, true), 0); ?></td>
 			</tr>
-			<!-- <tr>
+			<tr>
 				<td style='padding-left:20px;'>Repuestos Flotas Otras Marcas</td>
 				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/CostosRepuestosFlotasOtrasMarcas.php?tipo=liviano');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostoRepuestosFlotasOtrasMarcas('liviano', false, false), 0) ?></a></td>
 				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/CostosRepuestosFlotasOtrasMarcas.php?tipo=liviano&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostoRepuestosFlotasOtrasMarcas('liviano', false, true), 0) ?></a></td>
 				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getCostoRepuestosFlotasOtrasMarcas('liviano', false, false) + $informe->getCostoRepuestosFlotasOtrasMarcas('liviano', false, true), 0); ?></td>
-			</tr> -->
+			</tr>
 			<tr>
 				<td style='padding-left:20px;background-color:#C0C0C0 !important'>Repuestos Flotas Chevrolet</td>
 				<td style="text-align:right;background-color:#C0C0C0 !important">$<?php echo Moneda::getMoneda($informe->getMostradorSoloFlotas('liviano', false, 'totalc') + $informe->getMecanicaRapidaFlotas('liviano', false, false, 'totalc') + $informe->getMecanicaEspecializadaFlotas('liviano', false, false, 'totalc'), 0); ?></td>
@@ -752,12 +752,12 @@
 				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/AlternosMostradorCosto.php?tipo=pesados&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getAlternosMostradorCosto('pesados', false, true), 0); ?></a></td>
 				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getAlternosMostradorCosto('pesados', false, false) + $informe->getAlternosMostradorCosto('pesados', false, true), 0); ?></td>
 			</tr>
-			<!-- <tr>
+			<tr>
 				<td style='padding-left:20px;'>Repuestos Flotas Otras Marcas</td>
 				<td style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/CostosRepuestosFlotasOtrasMarcas.php?tipo=pesados');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostoRepuestosFlotasOtrasMarcas('pesados', false, false), 0) ?></a></td>
 				<td class='coa' style="text-align:right;"><a onclick="verVentana('#ventana', 'detalle/CostosRepuestosFlotasOtrasMarcas.php?tipo=pesados&chevrolet');" href='#'>$<?php echo Moneda::getMoneda($informe->getCostoRepuestosFlotasOtrasMarcas('pesados', false, true), 0) ?></a></td>
 				<td class='coa' style="text-align:right;">$<?php echo Moneda::getMoneda($informe->getCostoRepuestosFlotasOtrasMarcas('pesados', false, false) + $informe->getCostoRepuestosFlotasOtrasMarcas('liviano', false, true), 0); ?></td>
-			</tr> -->
+			</tr>
 			<tr>
 				<td style='padding-left:20px;background-color:#C0C0C0 !important'>Repuestos Flotas Chevrolet</td>
 				<td style="text-align:right;background-color:#C0C0C0 !important">$<?php echo Moneda::getMoneda($informe->getMostradorSoloFlotas('pesados', false, 'totalc') + $informe->getMecanicaRapidaFlotas('pesados', false, false, 'totalc') + $informe->getMecanicaEspecializadaFlotas('pesados', false, false, 'totalc'), 0); ?></td>
